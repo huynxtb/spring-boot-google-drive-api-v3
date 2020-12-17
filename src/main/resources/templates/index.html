@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+
+    <title>Google Drive File</title>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+
+    <!-- fontawesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <!-- Datatables -->
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/r/dt/jq-2.1.4,jszip-2.5.0,pdfmake-0.1.18,dt-1.10.9,af-2.0.0,b-1.0.3,b-colvis-1.0.3,b-html5-1.0.3,b-print-1.0.3,se-1.0.1/datatables.min.css"/>
+
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/r/dt/jq-2.1.4,jszip-2.5.0,pdfmake-0.1.18,dt-1.10.9,af-2.0.0,b-1.0.3,b-colvis-1.0.3,b-html5-1.0.3,b-print-1.0.3,se-1.0.1/datatables.min.js">
+    </script>
+
+    <!-- Sweetalert -->
+    <script th:src="@{/sweetalert/sweetalert2.min.js}"></script>
+    <link rel="stylesheet" th:href="@{/sweetalert/sweetalert2.min.css}"/>
+
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+</head>
+
+<body>
+<h1 style="text-align: center">Spring Boot-Google Drive API</h1>
+<h2 style="text-align: center; color: #3085d6"><a href="https://www.facebook.com/huynx.dev.dn/" target="_blank">Made by: Nguyen Xuan Huy</a></h2>
+
+<div class="w3-container">
+    <div class="row">
+        <!--Form Upload-->
+        <div class="col-sm-4" style="background-color: #f8bb86;">
+            <form th:action="@{/upload/file}" method="post" enctype="multipart/form-data">
+                <!--Select option-->
+                <h1 style="text-align: center">Upload file to Drive</h1>
+                <div id="select" class="select" style=" margin: auto; width: 60%; border-radius: 10px;">
+                    <select name="filePath" id="filePath">
+                        <option value="">Select folder drive:</option>
+                        <option th:each="dto : ${DTO_FOLDER}" th:value="${dto.name}" th:text="${dto.name}"></option>
+                    </select>
+
+                </div>
+                <br>
+                <div class="input-file-container" style=" margin: auto; border-radius: 10px;">
+                    <input class="input-file" id="my-file" type="file" name="fileUpload">
+                    <label tabindex="0" for="my-file" class="input-file-trigger">Select a file...</label>
+                    <p class="file-return"></p>
+                </div>
+                <br>
+                <div class="buttonHolder">
+                    <label for="radio">Public file?</label>
+                    <div id="radio">
+                        <input type="radio" id="yes" name="shared" value="true" checked>
+                        <label for="yes">Yes</label><br>
+                        <input type="radio" id="no" name="shared" value="false">
+                        <label for="no">No</label><br>
+                        <input id="btnUpload" class="btn-upload" type="submit" value="Submit"/>
+                    </div>
+                </div>
+                <h4 style="text-align: center;"><a th:href="@{/list/folders}" target="_blank">Get Folder</a></h4>
+            </form>
+        </div>
+
+        <!--Form data-->
+        <div class="col-sm-8" style="background-color:#a5dc86;">
+            <form th:action="@{/}" id="formSubmit" method="get">
+                <div class="table-responsive">
+                    <h1 style="text-align: center">Get File Google Drive</h1>
+                    <table id="customer_data" class="table table-bordered table-striped" width="100%">
+                        <thead>
+                        <tr>
+                            <th style="text-align: center">Name</th>
+                            <th style="text-align: center">Size</th>
+                            <th style="text-align: center">Public</th>
+                            <th style="text-align: center">Share Link</th>
+                            <th style="text-align: center">Download</th>
+                            <th style="text-align: center">Thumbnail Link</th>
+                            <th style="text-align: center">Delete</th>
+                        </tr>
+                        </thead>
+                        <tbody th:id="'data-google-drive'">
+                        <tr th:id="'data-google-drive-2'" th:each="dto: ${DTO_FILE}">
+                            <td style="text-align: center" th:text="${dto.name}"></td>
+                            <td style="text-align: center" th:text="${dto.size}"></td>
+                            <th style="text-align: center" th:text="${dto.shared}"></th>
+                            <th style="text-align: center"><a th:href="${dto.link}" target="_blank">Link</a></th>
+                            <th style="text-align: center"><a th:href="@{/download/file/{id}(id=${dto.id})}">Download</a></th>
+                            <td><img th:src="${dto.thumbnailLink}" alt="Image" style="width:50px;height:50px;"></td>
+                            <th style="text-align: center"><a style="background-color: #f44336;color: white;padding: 10px 10px;text-align: center;text-decoration: none;display: inline-block;" th:href="@{'/delete/file/'+${dto.id}}">Delete</a></th>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!--Button upload click binding path-->
+<script>
+    document.querySelector("html").classList.add('js');
+
+    var fileInput = document.querySelector(".input-file"),
+        button = document.querySelector(".input-file-trigger"),
+        the_return = document.querySelector(".file-return"),
+        fullPath;
+
+    button.addEventListener("keydown", function (event) {
+        if (event.keyCode == 13 || event.keyCode == 32) {
+            fileInput.focus();
+        }
+    });
+    button.addEventListener("click", function (event) {
+        fileInput.focus();
+        return false;
+    });
+    fileInput.addEventListener("change", function (event) {
+        fullPath = this.value;
+        the_return.innerHTML = fullPath.replace(/^.*[\\\/]/, '');
+    });
+
+</script>
+
+<script>
+    // Check empty file upload
+    $("#btnUpload").click(function () {
+        var bool = true;
+
+        if ($('#my-file').val() == '') {
+            swal(
+                'Failed',
+                'Please choose a file',
+                'error'
+            )
+            bool = false;
+        } else {
+            bool = true;
+        }
+        if (bool) {
+            swal({
+                title: 'Please Wait !',
+                html: 'Data uploading...',// add html attribute if you want or remove
+                allowOutsideClick: false,
+                onBeforeOpen: () => {
+                    swal.showLoading()
+                },
+            });
+        }
+        return bool;
+    });
+
+</script>
+
+<!--Datatable 1-->
+<script type="text/javascript" language="javascript">
+    $(document).ready(function () {
+
+        $('#customer_data').DataTable({
+            "processing": true,
+
+            dom: 'lBfrtip',
+            buttons: [
+                'excel', 'csv', 'copy'
+            ],
+            "lengthMenu": [
+                [10, 25, 50, -1],
+                [10, 25, 50, "All"]
+            ]
+        });
+
+    });
+</script>
+
+</body>
+
+</html>

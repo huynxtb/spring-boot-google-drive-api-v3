@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Spring Boot-Google Drive</title>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+
+    <!-- fontawesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <!-- Datatables -->
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/r/dt/jq-2.1.4,jszip-2.5.0,pdfmake-0.1.18,dt-1.10.9,af-2.0.0,b-1.0.3,b-colvis-1.0.3,b-html5-1.0.3,b-print-1.0.3,se-1.0.1/datatables.min.css"/>
+
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/r/dt/jq-2.1.4,jszip-2.5.0,pdfmake-0.1.18,dt-1.10.9,af-2.0.0,b-1.0.3,b-colvis-1.0.3,b-html5-1.0.3,b-print-1.0.3,se-1.0.1/datatables.min.js">
+    </script>
+
+    <!-- Sweetalert -->
+    <script th:src="@{/sweetalert/sweetalert2.min.js}"></script>
+    <link rel="stylesheet" th:href="@{/sweetalert/sweetalert2.min.css}"/>
+
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+
+</head>
+
+<body>
+<h1 style="text-align: center">Spring Boot-Google Drive API</h1>
+<h2 style="text-align: center; color: #3085d6"><a href="https://www.facebook.com/huynx.dev.dn/" target="_blank">Made by:
+    Nguyen Xuan Huy</a></h2>
+
+    <div class="container">
+        <div class="row">
+            <!--Form Upload-->
+            <div class="col-sm-4" style="background-color: #f8bb86;">
+                <form th:action="@{/create/folder}" method="post" >
+                    <h1 style="text-align: center">Create folder</h1>
+                    <label for="folderName" style="text-align: center">Enter folder name:</label>
+                    <input style="text-align: center" id="folderName" class="btn-upload" type="text" name="folderName"/>
+                    <div class="buttonHolder">
+                        <div id="radio">
+                            <input id="btnUpload" class="btn-upload" type="submit" value="Submit"/>
+                        </div>
+                    </div>
+
+                    <h4 style="text-align: center;"><a th:href="@{/}" target="_blank">Get File</a></h4>
+                </form>
+            </div>
+
+            <!--Form data-->
+            <div class="col-sm-8" style="background-color:#a5dc86;">
+                <form th:href="@{/}" id="formSubmit" method="get">
+                    <div class="table-responsive">
+
+                        <h1 style="text-align: center">Get Folder Google Drive</h1>
+                        <table id="customer_data" class="table table-bordered table-striped" width="100%">
+                            <thead>
+                            <tr>
+                                <th style="text-align: center">Name</th>
+                                <th style="text-align: center">Link</th>
+                                <th style="text-align: center">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody id="data-google">
+                            <tr th:each="item : ${DTO}">
+                                <td style="text-align: center" th:text="${item.name}"></td>
+                                <th style="text-align: center"><a th:href="${item.link}" target="_blank">Go to link...</a></th>
+                                <th style="text-align: center"><a style="background-color: #f44336;color: white;padding: 5px 10px;text-align: center;text-decoration: none;display: inline-block;" th:href="@{'/delete/folder/'+${item.id}}">Delete</a></th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script>
+
+    // Check empty file upload
+    $("#btnUpload").click(function () {
+        var bool = true;
+
+        if ($('#folderName').val() == '') {
+            swal(
+                'Failed',
+                'Please input folder name',
+                'error'
+            )
+            bool = false;
+        }
+        if (bool) {
+            swal({
+                title: 'Please Wait !',
+                html: 'Data uploading...',// add html attribute if you want or remove
+                allowOutsideClick: false,
+                onBeforeOpen: () => {
+                    swal.showLoading()
+                },
+            });
+        }
+        return bool;
+    });
+
+</script>
+
+<!--Datatable 1-->
+<script type="text/javascript" language="javascript">
+    $(document).ready(function () {
+
+        $('#customer_data').DataTable({
+            "processing": true,
+
+            dom: 'lBfrtip',
+            buttons: [
+                'excel', 'csv', 'copy'
+            ],
+            "lengthMenu": [
+                [10, 25, 50, -1],
+                [10, 25, 50, "All"]
+            ]
+        });
+
+    });
+</script>
+
+</body>
+
+</html>
